@@ -1,13 +1,50 @@
 # @author: Colan Biemer
 
+from random import random, shuffle
+
 class NGram():
     def __init__(self, n):
         self.n = n
         self.grammar = {}
+        self.compiled_grammar = None
+
+    def get(self, grammar_input):
+        assert self.compiled_grammar != None
+        grammar_input = str(grammar_input)
+        assert grammar_input in self.compiled_grammar
+        
+        indexes = [i for i in range(len(self.compiled_grammar[grammar_input].keys))]
+        shuffle(indexes)
+
+        required_weight = random()
+        current_weight = 0
+
+        for index in indexes:
+            value = self.compiled_grammar[grammar_input].keys[index]
+            current_weight += self.compiled_grammar[grammar_input][value]
+
+            if current_weight >= required_weight:
+                return value
+
+        raise EnvironmentError('This should not have happened')
 
     def compile(self, weighted=True):
-        raise NotImplementedError
-    
+        self.compiled_grammar = {}
+
+        for key in self.grammar:
+            self.compiled_grammar[key] = {}
+            
+            occurrences = 0
+            for value in self.grammar[key]:
+                if weighted:
+                    occurrences += self.grammar[key][value]
+                else:
+                    self.compiled_grammar[key][value] =  1 / float(len(self.grammar[key]))
+
+            if weighted:
+                for value in self.grammar[key]:
+                    self.compiled_grammar[key][value] = self.grammar[key][value] / float(occurrences)
+
     def add(self, key, value):
         assert len(key) == self.n
         key = str(key)

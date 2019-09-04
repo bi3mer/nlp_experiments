@@ -8,7 +8,7 @@ from DataStructures import NGram, RingBuffer
 files = ['harry_01.txt', 'harry_02.txt']
 # files = ['dummy.txt']
 min_grammar_size = 1
-max_grammar_size = 6
+max_grammar_size = 7
 
 grammars = [NGram(i) for i in range(min_grammar_size, max_grammar_size)]
 buffers = [RingBuffer(i) for i in range(min_grammar_size, max_grammar_size)]
@@ -28,6 +28,28 @@ for file_name in tqdm(files):
             buffers[index].add(word)
 
 print('')
-print('Grammar Generated')
 
-grammars[0].print_detailed_view()
+if not os.path.exists('dist'):
+    os.makedirs('dist')
+
+file_path = os.path.join('dist', 'harry_potter_naive_n_grams.html')
+print(f'Generating HTML at {file_path}')
+
+f = open(file_path, 'w')
+f.write('<h1>Naive N-Grams with Harry Potter</h1>')
+
+for i in range(len(grammars)):
+    grammar_size = i + min_grammar_size
+    grammar = grammars[i]
+
+    f.write(f'<h2>N={grammar_size}</h2>')
+    f.write(f'<h3>Unweighted Output</h3>')
+
+    grammar.compile(weighted=False)
+
+    f.write(f'<h3>Weighted Output</h3>')
+    grammar.compile()
+    
+
+f.close()
+os.popen(f'open {file_path}')
