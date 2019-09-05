@@ -7,7 +7,6 @@ import os
 from DataStructures import NGram, RingBuffer
 
 files = ['harry_01.txt', 'harry_02.txt']
-# files = ['dummy.txt']
 min_grammar_size = 1
 max_grammar_size = 7
 
