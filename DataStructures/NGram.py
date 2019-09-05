@@ -1,6 +1,7 @@
 # @author: Colan Biemer
 
 from random import random, shuffle
+import json
 
 class NGram():
     def __init__(self, n):
@@ -10,17 +11,17 @@ class NGram():
 
     def get(self, grammar_input):
         assert self.compiled_grammar != None
-        grammar_input = str(grammar_input)
+        grammar_input = json.dumps(grammar_input)
         assert grammar_input in self.compiled_grammar
         
-        indexes = [i for i in range(len(self.compiled_grammar[grammar_input].keys))]
+        indexes = [i for i in range(len(self.compiled_grammar[grammar_input].keys()))]
         shuffle(indexes)
 
         required_weight = random()
         current_weight = 0
 
         for index in indexes:
-            value = self.compiled_grammar[grammar_input].keys[index]
+            value = list(self.compiled_grammar[grammar_input].keys())[index]
             current_weight += self.compiled_grammar[grammar_input][value]
 
             if current_weight >= required_weight:
@@ -47,7 +48,7 @@ class NGram():
 
     def add(self, key, value):
         assert len(key) == self.n
-        key = str(key)
+        key = json.dumps(key)
         
         if key in self.grammar:
             if value in self.grammar[key]:
