@@ -4,7 +4,7 @@ class RingBuffer():
         self.buffer = []
 
     def add(self, value):
-        if len(self.buffer) == self.buffer_limit:
+        if self.full():
             self.buffer.pop(0)
 
         self.buffer.append(value)

@@ -3,8 +3,12 @@
 from random import random, shuffle
 import json
 
+from . import RingBuffer
+
 class NGram():
     def __init__(self, n):
+        assert n >= 2
+
         self.n = n
         self.grammar = {}
         self.compiled_grammar = None
@@ -47,7 +51,7 @@ class NGram():
                     self.compiled_grammar[key][value] = self.grammar[key][value] / float(occurrences)
 
     def add(self, key, value):
-        assert len(key) == self.n
+        assert len(key) == self.n - 1
         key = json.dumps(key)
         
         if key in self.grammar:
@@ -67,3 +71,18 @@ class NGram():
                 values = f'{values} \n\t\t{value}: {self.grammar[key][value]}'
 
             print(f'{key} ->{values}')
+
+    def compute_sequence_probability(self, sequence):
+        assert len(sequence) > self.n
+
+        rb = RingBuffer(self.n - 1)
+        probability = 1
+
+        for word in sequence:
+            if rb.full():
+                probability *= self.compiled_grammar[json.dumps(rb.buffer)][word]
+
+            rb.add(word)
+
+        return probability
+            
