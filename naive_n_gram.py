@@ -70,7 +70,8 @@ def write_to_html(f, starting_input, compiled_grammar, grammar_size):
         f.write(f'{next_word} ')
 
     f.write('\n<br/>\n<br/>\n')
-    f.write(f'<b>Percent Likelihood:</b> {compiled_grammar.compute_sequence_probability(paragraph) * 100}%')
+    f.write(f'<b>Percent Likelihood:</b> {compiled_grammar.sequence_probability(paragraph) * 100}%\n</br>\n')
+    f.write(f'<b>Perplexity:</b> {compiled_grammar.perplexity(paragraph)}')
 
     f.write('\n<br/>\n')
     f.write('</p>\n')
@@ -91,6 +92,5 @@ for i in range(len(grammars)):
 
 f.write('<br/><br/><br/><br/><br/><br/><br/><br/><br/>')
     
-
 f.close()
 os.popen(f'open {file_path}')

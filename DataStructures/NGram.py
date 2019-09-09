@@ -1,6 +1,8 @@
 # @author: Colan Biemer
 
 from random import random, shuffle
+from colorama import Fore, Style
+import math
 import json
 
 from . import RingBuffer
@@ -32,6 +34,24 @@ class NGram():
                 return value
 
         raise EnvironmentError('This should not have happened')
+
+    def get_most_likely(self, grammar_input):
+        assert self.compiled_grammar != None
+        grammar_input = json.dumps(grammar_input)
+        assert grammar_input in self.compiled_grammar
+        
+        indexes = [i for i in range(len(self.compiled_grammar[grammar_input].keys()))]
+        most_likely_percent = 0
+        most_likely_value = None
+
+        for index in indexes:
+            value = list(self.compiled_grammar[grammar_input].keys())[index]
+
+            if self.compiled_grammar[grammar_input][value] > most_likely_percent:
+                most_likely_percent = self.compiled_grammar[grammar_input][value]
+                most_likely_value = value
+
+        raise most_likely_value
 
     def compile(self, weighted=True):
         self.compiled_grammar = {}
@@ -72,7 +92,7 @@ class NGram():
 
             print(f'{key} ->{values}')
 
-    def compute_sequence_probability(self, sequence):
+    def sequence_probability(self, sequence):
         assert len(sequence) > self.n
 
         rb = RingBuffer(self.n - 1)
@@ -80,9 +100,21 @@ class NGram():
 
         for word in sequence:
             if rb.full():
+                grammar_input = json.dumps(rb.buffer)
+                if grammar_input not in self.compiled_grammar:
+                    print(f'\n{Fore.RED}{grammar_input} cannot be found in the grammar.{Style.RESET_ALL}')
+                elif word not in self.compiled_grammar[grammar_input]:
+                    print(f'\n{Fore.RED}{word} cannot be found in the grammar for {grammar_input}{Style.RESET_ALL}')
+
                 probability *= self.compiled_grammar[json.dumps(rb.buffer)][word]
 
             rb.add(word)
 
         return probability
-            
+
+    def perplexity(self, sequence):
+        denominator = self.sequence_probability(sequence) ** len(sequence)
+
+        if denominator == 0:
+            return float('inf')
+        return 1 / denominator
