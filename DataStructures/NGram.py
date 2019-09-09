@@ -7,6 +7,13 @@ import json
 
 from . import RingBuffer
 
+'''
+TODO:
+    * support word probabilities without any input
+    * do i need to implement a different one of these to support interpoloation, back-off, good turing, etc.
+    * add support to use get_most_likely with perplexity and sequence_probability
+'''
+
 class NGram():
     def __init__(self, n):
         assert n >= 2
@@ -102,9 +109,9 @@ class NGram():
             if rb.full():
                 grammar_input = json.dumps(rb.buffer)
                 if grammar_input not in self.compiled_grammar:
-                    print(f'\n{Fore.RED}{grammar_input} cannot be found in the grammar.{Style.RESET_ALL}')
+                    print(f'\n{Fore.RED}|{grammar_input}| cannot be found in the grammar.{Style.RESET_ALL}')
                 elif word not in self.compiled_grammar[grammar_input]:
-                    print(f'\n{Fore.RED}{word} cannot be found in the grammar for {grammar_input}{Style.RESET_ALL}')
+                    print(f'\n{Fore.RED}|{word}| cannot be found in the grammar for |{grammar_input}|{Style.RESET_ALL}')
 
                 probability *= self.compiled_grammar[json.dumps(rb.buffer)][word]
 
