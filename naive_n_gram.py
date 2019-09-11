@@ -4,13 +4,15 @@ from tqdm import tqdm
 import json
 import os
 
-from DataStructures import NGram, RingBuffer
+from DataStructures import RingBuffer
+from Models import UnsmoothedNGram
 
 files = ['harry_01.txt', 'harry_02.txt']
+
 min_grammar_size = 2
 max_grammar_size = 10
 
-grammars = [NGram(i) for i in range(min_grammar_size, max_grammar_size)]
+grammars = [UnsmoothedNGram(i) for i in range(min_grammar_size, max_grammar_size)]
 buffers = [RingBuffer(i - 1) for i in range(min_grammar_size, max_grammar_size)]
 
 for file_name in tqdm(files):
@@ -51,10 +53,11 @@ best_key = json.loads(best_key)
 
 print(f'Generating HTML at {file_path}')
 f = open(file_path, 'w')
+f.write('<body bgcolor="#afafaf">')
 f.write('<h1>Naive N-Grams with Harry Potter</h1>')
 
-def write_to_html(f, starting_input, compiled_grammar, grammar_size):
-    buffer = RingBuffer(grammar_size)
+def write_to_html(f, starting_input, compiled_grammar, size):
+    buffer = RingBuffer(compiled_grammar.n - 1)
     paragraph = []
 
     f.write('<p>')
@@ -63,7 +66,7 @@ def write_to_html(f, starting_input, compiled_grammar, grammar_size):
         buffer.add(key)
         paragraph.append(key)
 
-    for _ in range(100):
+    for _ in range(size):
         next_word = compiled_grammar.get(buffer.buffer)
         buffer.add(next_word)
         paragraph.append(next_word)
@@ -77,20 +80,21 @@ def write_to_html(f, starting_input, compiled_grammar, grammar_size):
     f.write('</p>\n')
 
 for i in range(len(grammars)):
-    grammar_size = i + min_grammar_size - 1
     grammar = grammars[i]
 
-    f.write(f'<h2>N={grammar_size}</h2>')
+    f.write(f'<h2>N={grammar.n}</h2>')
 
     f.write(f'<h3>Unweighted Output</h3>')
     grammar.compile(weighted=False)
-    write_to_html(f, best_key, grammar, grammar_size)
+    write_to_html(f, best_key, grammar, 10)
+    write_to_html(f, best_key, grammar, 100)
 
     f.write(f'<h3>Weighted Output</h3>')
     grammar.compile(weighted=True)
-    write_to_html(f, best_key, grammar, grammar_size)
+    write_to_html(f, best_key, grammar, 10)
+    write_to_html(f, best_key, grammar, 100)
 
-f.write('<br/><br/><br/><br/><br/><br/><br/><br/><br/>')
+f.write('<br/><br/><br/><br/><br/><br/><br/><br/><br/></body>')
     
 f.close()
 os.popen(f'open {file_path}')

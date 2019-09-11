@@ -5,7 +5,7 @@ from colorama import Fore, Style
 import math
 import json
 
-from . import RingBuffer
+from DataStructures import RingBuffer
 
 '''
 TODO:
@@ -14,7 +14,7 @@ TODO:
     * add support to use get_most_likely with perplexity and sequence_probability
 '''
 
-class NGram():
+class UnsmoothedNGram():
     def __init__(self, n):
         assert n >= 2
 
@@ -71,6 +71,7 @@ class NGram():
                 if weighted:
                     occurrences += self.grammar[key][value]
                 else:
+
                     self.compiled_grammar[key][value] =  1 / float(len(self.grammar[key]))
 
             if weighted:
@@ -100,10 +101,13 @@ class NGram():
             print(f'{key} ->{values}')
 
     def sequence_probability(self, sequence):
+        '''
+        Calculation is done in log space to avoid underflow.
+        '''
         assert len(sequence) > self.n
 
         rb = RingBuffer(self.n - 1)
-        probability = 1
+        sum_of_log_probabilities = 0
 
         for word in sequence:
             if rb.full():
@@ -113,15 +117,21 @@ class NGram():
                 elif word not in self.compiled_grammar[grammar_input]:
                     print(f'\n{Fore.RED}|{word}| cannot be found in the grammar for |{grammar_input}|{Style.RESET_ALL}')
 
-                probability *= self.compiled_grammar[json.dumps(rb.buffer)][word]
+                probability = self.compiled_grammar[json.dumps(rb.buffer)][word]
+
+                if probability == 0:
+                    return 0
+
+                sum_of_log_probabilities += math.log(probability)
 
             rb.add(word)
 
-        return probability
+        return math.exp(sum_of_log_probabilities)
 
     def perplexity(self, sequence):
         denominator = self.sequence_probability(sequence) ** len(sequence)
 
         if denominator == 0:
             return float('inf')
+
         return 1 / denominator
